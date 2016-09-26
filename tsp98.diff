@@ -1,0 +1,270 @@
+--- ../tspace.org/tsp98.f	2016-09-26 12:28:02.009824026 +0900
++++ tsp98.f	2016-09-26 12:51:51.929764223 +0900
+@@ -1,3 +1,19 @@
++!Copyright 2016,  Hiori Kino
++!
++!Licensed under the Apache License, Version 2.0 (the "License");
++!you may not use this file except in compliance with the License.
++!You may obtain a copy of the License at
++!
++!    http://www.apache.org/licenses/LICENSE-2.0
++!
++!Unless required by applicable law or agreed to in writing, software
++!distributed under the License is distributed on an "AS IS" BASIS,
++!WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++!See the License for the specific language governing permissions and
++!limitations under the License.
++
++
++#define USE_GEN 1
+ C SUBROUTINE TSPACE ====*====3====*====4====*====5====*====6====*====7
+ C
+ C    PREPARE THE ROTATION OPERATIOS IT(3,48)
+@@ -7611,17 +7627,33 @@
+    20 CONTINUE
+       RETURN
+       END
++#if USE_GEN
++      SUBROUTINE TSNTNM(NN,NC,SCH,HMN)
++      use m_gen
++#else
+       SUBROUTINE TSNTNM(NN,NF,NC,SCH,HMN)
++#endif
+       CHARACTER*5 SCHNAM,SCH
+       CHARACTER*10 HMNAME,HMN
+       IF(NN.LE.0.OR.NN.GT.230) GO TO 4
++#if USE_GEN
++      call gen%rewind
++#else
+       REWIND NF
++#endif
+       NC=0
++#if USE_GEN
++    2 if (gen%next(NO,IL,NG,SCHNAM,HMNAME)) goto 3
++#else
+     2 READ(NF,100,END=3) NO,IL,NG,SCHNAM,HMNAME
++#endif
+   100 FORMAT(I3,1X,I2,I2,1X,A5,1X,A10)
++#if USE_GEN
++#else
+       DO 1 I=1,NG
+          READ(NF,100)
+     1 CONTINUE
++#endif
+       IF(NO.EQ.NN) THEN
+          SCH=SCHNAM
+          HMN=HMNAME
+@@ -7634,16 +7666,34 @@
+     4 WRITE(6,*) ' YOU MAY GIVE INCORRECT SPACE GROUP NUMBER'
+       RETURN
+       END    
++
++#if USE_GEN
++      SUBROUTINE TSCHTN(SCH,NC,NN,HMN)
++      use m_gen
++#else
+       SUBROUTINE TSCHTN(SCH,NF,NC,NN,HMN)
++#endif
+       CHARACTER*5 SCHNAM,SCH
+       CHARACTER*10 HMNAME,HMN
++#if USE_GEN
++      call gen%rewind
++#else
+       REWIND NF
++#endif
+       NC=0
++#if USE_GEN
++    2  if (gen%next(NO,IL,NG,SCHNAM,HMNAME)) goto 3
++#else
+     2 READ(NF,100,END=3) NO,IL,NG,SCHNAM,HMNAME
++#endif
+   100 FORMAT(I3,1X,I2,I2,1X,A5,1X,A10)
++#if USE_GEN
++
++#else
+       DO 5 I=1,NG
+          READ(NF,100)
+     5 CONTINUE
++#endif
+       IF(SCH.EQ.SCHNAM) THEN
+          NN=NO
+          HMN=HMNAME
+@@ -7656,16 +7706,33 @@
+       WRITE(6,*) ' YOU MAY GIVE INCORRECT SCHNAME'
+       RETURN
+       END    
++
++#if USE_GEN
++      SUBROUTINE TSHMTN(HMN,NC,NN,SCH)
++      use m_gen 
++#else
+       SUBROUTINE TSHMTN(HMN,NF,NC,NN,SCH)
++#endif
+       CHARACTER*5 SCHNAM,SCH
+       CHARACTER*10 HMNAME,HMN
++#if USE_GEN
++      call gen%rewind
++#else
+       REWIND NF
++#endif
+       NC=0
++#if USE_GEN
++    2 if (gen%next(NO,IL,NG,SCHNAM,HMNAME)) goto 3 
++#else
+     2 READ(NF,100,END=3) NO,IL,NG,SCHNAM,HMNAME
++#endif
+   100 FORMAT(I3,1X,I2,I2,1X,A5,1X,A10)
++#if USE_GEN
++#else
+       DO 5 I=1,NG
+          READ(NF,100)
+     5 CONTINUE
++#endif
+       IF(HMN.EQ.HMNAME) THEN
+          SCH=SCHNAM
+          NN=NO
+@@ -7678,13 +7745,27 @@
+       WRITE(6,*) ' YOU MAY GIVE INCORRECT INTERNATIONAL NAME'
+       RETURN
+       END    
++
++#if USE_GEN
++      SUBROUTINE TSPNGE(NN,NC)
++      use m_gen 
++#else
+       SUBROUTINE TSPNGE(NN,NC,NF)
++#endif
+       CHARACTER*5 SCHNAM
+       CHARACTER*10 HMNAME
+       INTEGER JB(2,3)
++#if USE_GEN
++      call gen%rewind
++#else
+       REWIND NF
++#endif
+       NCHOI=0
++#if USE_GEN
++    2 if (gen%next(NO,IL,NG,SCHNAM,HMNAME)) goto 3
++#else
+     2 READ(NF,100,END=3) NO,IL,NG,SCHNAM,HMNAME
++#endif
+   100 FORMAT(I3,1X,I2,I2,1X,A5,1X,A10)
+       IF(NO.EQ.NN) THEN
+          NCHOI=NCHOI+1
+@@ -7695,22 +7776,32 @@
+             WRITE(6,600) NN,SCHNAM,HMNAME,NCHOI
+   600       FORMAT(I4,3X,A5,2X,A10,' CHOICE',I2)
+             DO 1 K=1,NG
++#if USE_GEN
++               call gen%getitem(k,ja,jb)
++#else
+                READ(NF,200) JA,((JB(I,J),I=1,2),J=1,3)
++#endif
+   200          FORMAT(I2,6I2)
+                CALL TSGENR(JA,JB)
+     1       CONTINUE
+             CALL TSPGRP(0)
+             CALL TSPGDS
+          ELSE
++#if USE_GEN
++#else
+             DO 5 I=1,NG
+                READ(NF,200)
+     5       CONTINUE 
++#endif
+             GO TO 2   
+          END IF
+       ELSE
++#if USE_GEN
++#else
+          DO 4 I=1,NG
+             READ(NF,200)
+     4    CONTINUE
++#endif
+       END IF
+       IF(NO.GT.NN) RETURN
+       GO TO 2
+@@ -7730,19 +7821,37 @@
+ C     
+ C---*----1----*----2----*----3----*----4----*----5----*----6----*----7
+ C     
++#if USE_GEN
++      SUBROUTINE TSWYRD(NSPG,NC,NUC,NPOS,MPOS,XYZ,JB)
++      use m_genwy
++#else
+       SUBROUTINE TSWYRD(NSPG,NC,NF,NUC,NPOS,MPOS,XYZ,JB)
++#endif
+ C     
+       INTEGER JB(2,3,30),XYZ(3,30),NPOS(30)
+       CHARACTER*1 MPOS(30),SYMB(3,30)
+ C     
+       NCOUT=0
++#if USE_GEN
++      call genwy%rewind
++#else
+       REWIND NF
++#endif
++#if USE_GEN
++   12 if( genwy%next(nn,nuc) ) then 
++         write(6,*)'TSWYRD: error , genwy_next failed'; stop 
++      endif
++#else
+    12 READ(NF,100) NN,NUC
++#endif
+   100 FORMAT(2I3)
+       IF(NN.NE.NSPG) THEN
++#if USE_GEN
++#else
+          DO 13 K=1,NUC
+             READ(NF,200)
+    13    CONTINUE
++#endif
+          IF(NCOUT.NE.0) THEN
+             WRITE(6,*) ' CHOICE NUMBER IS INCORRECT'
+             WRITE(6,*) ' STOP IN TSWYRD'
+@@ -7752,7 +7861,27 @@
+       ELSE
+          NCOUT=NCOUT+1
+          DO 14 K=1,NUC
++#if USE_GEN
++            call genwy%nextitem(k,NPOS(K),MPOS(K),SYMB(:,K))
++#else
+             READ(NF,200) NPOS(K),MPOS(K),(SYMB(I,K),I=1,3)
++#endif
++	    if (k<27) then
++            if (mpos(k).ne.char(ichar('a')+k-1)) then 
++                write(6,*)'character error in TSWYRD'
++		write(6,*)'k=',k,' mpos='
++		write(6,'(10A2)') mpos(1:nuc)
++		stop 
++            endif
++	    else
++            if (mpos(k).ne.char(ichar('0')+k-27)) then
++                write(6,*)'character error in TSWYRD'
++                write(6,*)'k=',k,' mpos='
++                write(6,'(10A2)') mpos(1:nuc)
++                stop
++            endif
++            endif
++
+   200       FORMAT(I2,A1,3(1X,A1))
+             IF(NPOS(K).EQ.92) NPOS(K)=192
+    14    CONTINUE
+@@ -7873,6 +8002,7 @@
+ C---*----1----*----2----*----3----*----4----*----5----*----6----*----7
+ C     
+       SUBROUTINE TSWYCF(A,NUC,NPOS,MPOS,XYZ,JB,NSITE,XYZWM,JAM)
++      intent(in):: A, NUC, NPOS, MPOS, XYZ,JB
+       COMMON/SPG1/IT(3,48),IM(48,48),IV(48)                           
+       COMMON/SPG2/IL,NG,IG(48),JV(2,3,48)                             
+       SAVE /SPG1/,/SPG2/,IB                                              
+@@ -8098,6 +8228,9 @@
+      &   3(I3,1H/,I1),3I3)                                                 
+       GO TO 1                                                              
+    12 WRITE(6,601) I,ITA,A,B,GN,KA                                         
++#if 1
++      call gn_ka_set(i,gn,ka)
++#endif
+       GO TO 1                                                              
+    13 WRITE(6,606) ITA,A,B,GN                                              
+   606 FORMAT(I4,2X,A1,A4,3(1X,2A1))                                        
