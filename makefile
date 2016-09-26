@@ -1,7 +1,7 @@
-FC=gfortran
-FFLAGS=-g -cpp -DUSE_GEN -ffixed-line-length-255
-#FC=ifort
-#FFLAGS=-O0 -g -traceback -cpp -DUSE_GEN -132  -check all
+#FC=gfortran
+#FFLAGS=-g -cpp -DUSE_GEN -ffixed-line-length-255
+FC=ifort
+FFLAGS=-O0 -g -traceback -cpp -DUSE_GEN -132  -check all
 
 #include ../make.inc
 
@@ -14,18 +14,20 @@ FFLAGS=-g -cpp -DUSE_GEN -ffixed-line-length-255
 	$(FC) -c -o $@ $*.f $(FFLAGS) 
 
 
-all: apply_patch lib
+all: TSP_PATCHED m_tsp.a
 
-apply_patch:
+TSP_PATCHED:
 	if [ ! -f TSP_PATCHED ] ; then  \
 		patch -u tsp98.f <  tsp98.diff ;\
 		touch TSP_PATCHED ; \
 	fi 
 
-lib: obj
+OBJ=  tsp98.o m_gen.o m_genwy.o gen.o  genwy.o 
+
+
+m_tsp.a: $(OBJ)
 	ar rcs m_tsp.a $(OBJ)
 
-OBJ=  make_gen.o m_gen.o make_wy.o  m_genwy.o 
 obj: $(OBJ)
 
 prog: make_gen make_wy
