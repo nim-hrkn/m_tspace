@@ -1,7 +1,7 @@
-#FC=gfortran
-#FFLAGS=-g -cpp -DUSE_GEN -ffixed-line-length-255
-FC=ifort
-FFLAGS=-O0 -g -traceback -cpp -DUSE_GEN -132  -check all
+FC=gfortran
+FFLAGS=-g -cpp -DUSE_GEN -ffixed-line-length-255 -std=legacy
+#FC=ifort
+#FFLAGS=-O2 -cpp -DUSE_GEN -132  
 
 #include ../make.inc
 
